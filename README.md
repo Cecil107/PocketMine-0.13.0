@@ -28,6 +28,9 @@ Port: **19133**
 IP: **pigcraftpe.mcpe.me**
 Port: **19192**
 
+**Mesro**<br>
+IP: **mesrocz.mcpe.me**
+Port: **27441**
 ## What is this?
 
 ImagicalMine is software for hosting Minecraft : Pocket Edition servers. From controlling everything you can possibly do on MCPE to everything players can ever imagine on a server, ImagicalMine is the perfect solution to hosting large-scale MCPE servers. Our goal is to make ImagicalMine the best MCPE server software out there, and can handle up to 1000 players without lag. 
