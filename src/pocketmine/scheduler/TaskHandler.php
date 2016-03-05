@@ -2,20 +2,25 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
+ *  _                       _           _ __  __ _             
+ * (_)                     (_)         | |  \/  (_)            
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___  
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \ 
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/ 
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___| 
+ *                     __/ |                                   
+ *                    |___/                                                                     
+ * 
+ * This program is a third party build by ImagicalMine.
+ * 
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
+ * 
  *
 */
 
@@ -41,12 +46,12 @@ class TaskHandler{
 	protected $nextRun;
 
 	/** @var bool */
-	protected $cancelled = \false;
+	protected $cancelled = false;
 
 	/** @var \pocketmine\event\TimingsHandler */
 	public $timings;
 
-	public $timingName = \null;
+	public $timingName = null;
 
 	/**
 	 * @param string $timingName
@@ -60,7 +65,7 @@ class TaskHandler{
 		$this->taskId = $taskId;
 		$this->delay = $delay;
 		$this->period = $period;
-		$this->timingName = $timingName === \null ? "Unknown" : $timingName;
+		$this->timingName = $timingName === null ? "Unknown" : $timingName;
 		$this->timings = Timings::getPluginTaskTimings($this, $period);
 	}
 
@@ -68,7 +73,7 @@ class TaskHandler{
 	 * @return bool
 	 */
 	public function isCancelled(){
-		return $this->cancelled === \true;
+		return $this->cancelled === true;
 	}
 
 	/**
@@ -139,8 +144,8 @@ class TaskHandler{
 	}
 
 	public function remove(){
-		$this->cancelled = \true;
-		$this->task->setHandler(\null);
+		$this->cancelled = true;
+		$this->task->setHandler(null);
 	}
 
 	/**
@@ -154,10 +159,10 @@ class TaskHandler{
 	 * @return string
 	 */
 	public function getTaskName(){
-		if($this->timingName !== \null){
+		if($this->timingName !== null){
 			return $this->timingName;
 		}
 
-		return \get_class($this->task);
+		return get_class($this->task);
 	}
 }

@@ -2,20 +2,25 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
+ *  _                       _           _ __  __ _             
+ * (_)                     (_)         | |  \/  (_)            
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___  
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \ 
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/ 
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___| 
+ *                     __/ |                                   
+ *                    |___/                                                                     
+ * 
+ * This program is a third party build by ImagicalMine.
+ * 
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
+ * 
  *
 */
 
@@ -26,7 +31,6 @@ namespace pocketmine\scheduler;
 
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
-use pocketmine\utils\MainLogger;
 use pocketmine\utils\PluginException;
 use pocketmine\utils\ReversePriorityQueue;
 
@@ -135,7 +139,7 @@ class ServerScheduler{
 	 * @param int $taskId
 	 */
 	public function cancelTask($taskId){
-		if($taskId !== \null and isset($this->tasks[$taskId])){
+		if($taskId !== null and isset($this->tasks[$taskId])){
 			$this->tasks[$taskId]->cancel();
 			unset($this->tasks[$taskId]);
 		}
@@ -160,7 +164,9 @@ class ServerScheduler{
 		}
 		$this->tasks = [];
 		$this->asyncPool->removeTasks();
-		$this->queue = new ReversePriorityQueue();
+		while(!$this->queue->isEmpty()){
+ 			$this->queue->extract();
+ 		}
 		$this->ids = 1;
 	}
 
@@ -185,22 +191,10 @@ class ServerScheduler{
 	private function addTask(Task $task, $delay, $period){
 		if($task instanceof PluginTask){
 			if(!($task->getOwner() instanceof Plugin)){
-				throw new PluginException("Invalid owner of PluginTask " . \get_class($task));
+				throw new PluginException("Invalid owner of PluginTask " . get_class($task));
 			}elseif(!$task->getOwner()->isEnabled()){
 				throw new PluginException("Plugin '" . $task->getOwner()->getName() . "' attempted to register a task while disabled");
 			}
-		}elseif($task instanceof CallbackTask and Server::getInstance()->getProperty("settings.deprecated-verbose", \true)){
-			$callable = $task->getCallable();
-			if(\is_array($callable)){
-				if(\is_object($callable[0])){
-					$taskName = "Callback#" . \get_class($callable[0]) . "::" . $callable[1];
-				}else{
-					$taskName = "Callback#" . $callable[0] . "::" . $callable[1];
-				}
-			}else{
-				$taskName = "Callback#" . $callable;
-			}
-			Server::getInstance()->getLogger()->warning("A plugin attempted to register a deprecated CallbackTask ($taskName)");
 		}
 
 		if($delay <= 0){
@@ -213,7 +207,7 @@ class ServerScheduler{
 			$period = 1;
 		}
 
-		return $this->handle(new TaskHandler(\get_class($task), $task, $this->nextId(), $delay, $period));
+		return $this->handle(new TaskHandler(get_class($task), $task, $this->nextId(), $delay, $period));
 	}
 
 	private function handle(TaskHandler $handler){
@@ -245,12 +239,9 @@ class ServerScheduler{
 				$task->timings->startTiming();
 				try{
 					$task->run($this->currentTick);
-				}catch(\Exception $e){
+				}catch(\Throwable $e){
 					Server::getInstance()->getLogger()->critical("Could not execute task " . $task->getTaskName() . ": " . $e->getMessage());
-					$logger = Server::getInstance()->getLogger();
-					if($logger instanceof MainLogger){
-						$logger->logException($e);
-					}
+					Server::getInstance()->getLogger()->logException($e);
 				}
 				$task->timings->stopTiming();
 			}
@@ -267,7 +258,7 @@ class ServerScheduler{
 	}
 
 	private function isReady($currentTicks){
-		return \count($this->tasks) > 0 and $this->queue->current()->getNextRun() <= $currentTicks;
+		return count($this->tasks) > 0 and $this->queue->current()->getNextRun() <= $currentTicks;
 	}
 
 	/**

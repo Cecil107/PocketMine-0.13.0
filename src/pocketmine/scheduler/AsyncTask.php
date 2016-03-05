@@ -2,90 +2,98 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
+ *  _                       _           _ __  __ _             
+ * (_)                     (_)         | |  \/  (_)            
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___  
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \ 
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/ 
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___| 
+ *                     __/ |                                   
+ *                    |___/                                                                     
+ * 
+ * This program is a third party build by ImagicalMine.
+ * 
+ * ImagicalMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
+ * 
  *
 */
 
 namespace pocketmine\scheduler;
 
 use pocketmine\Server;
+use pocketmine\Collectable;
 
 /**
  * Class used to run async tasks in other threads.
  *
- * WARNING: Do not call PocketMine-MP API methods, or save objects from/on other Threads!!
+ * WARNING: Do not call ImagicalMine API methods, or save objects from/on other Threads!!
  */
-abstract class AsyncTask extends \Collectable{
+abstract class AsyncTask extends Collectable{
 
 	/** @var AsyncWorker $worker */
-	public $worker = \null;
+	public $worker = null;
 
-	private $result = \null;
-	private $serialized = \false;
-	private $cancelRun = \false;
+	private $result = null;
+	private $serialized = false;
+	private $cancelRun = false;
 	/** @var int */
-	private $taskId = \null;
+	private $taskId = null;
+	
+	private $crashed = false;
 
 	public function run(){
-		$this->result = \null;
+		$this->result = null;
 
-		if($this->cancelRun !== \true){
-			$this->onRun();
+		if($this->cancelRun !== true){
+			try{
+ 				$this->onRun();
+ 			}catch(\Throwable $e){
+ 				$this->crashed = true;
+ 				$this->worker->handleException($e);
+ 			}
 		}
 
 		$this->setGarbage();
 	}
-
-	/**
-	 * @deprecated
-	 *
-	 * @return bool
-	 */
-	public function isFinished(){
-		return $this->isGarbage();
+	
+	public function isCrashed(){
+		return $this->crashed;
 	}
 
 	/**
 	 * @return mixed
 	 */
 	public function getResult(){
-		return $this->serialized ? \unserialize($this->result) : $this->result;
+		return $this->serialized ? unserialize($this->result) : $this->result;
 	}
 
 	public function cancelRun(){
-		$this->cancelRun = \true;
+		$this->cancelRun = true;
 	}
 
 	public function hasCancelledRun(){
-		return $this->cancelRun === \true;
+		return $this->cancelRun === true;
 	}
 
 	/**
 	 * @return bool
 	 */
 	public function hasResult(){
-		return $this->result !== \null;
+		return $this->result !== null;
 	}
 
 	/**
 	 * @param mixed $result
 	 * @param bool  $serialize
 	 */
-	public function setResult($result, $serialize = \true){
-		$this->result = $serialize ? \serialize($result) : $result;
+	public function setResult($result, $serialize = true){
+		$this->result = $serialize ? serialize($result) : $result;
 		$this->serialized = $serialize;
 	}
 
@@ -106,7 +114,7 @@ abstract class AsyncTask extends \Collectable{
 	 */
 	public function getFromThreadStore($identifier){
 		global $store;
-		return $this->isGarbage() ? \null : $store[$identifier];
+		return $this->isGarbage() ? null : $store[$identifier];
 	}
 
 	/**
@@ -144,7 +152,9 @@ abstract class AsyncTask extends \Collectable{
 
 	public function cleanObject(){
 		foreach($this as $p => $v){
-			$this->{$p} = \null;
+			if(!($v instanceof \Threaded)){
+ 				$this->{$p} = null;
+ 			}
 		}
 	}
 

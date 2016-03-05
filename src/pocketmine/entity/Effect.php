@@ -2,20 +2,25 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
+ *  _                       _           _ __  __ _             
+ * (_)                     (_)         | |  \/  (_)            
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___  
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \ 
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/ 
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___| 
+ *                     __/ |                                   
+ *                    |___/                                                                     
+ * 
+ * This program is a third party build by ImagicalMine.
+ * 
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
+ * 
  *
 */
 
@@ -26,7 +31,7 @@ use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\network\Network;
 use pocketmine\network\protocol\MobEffectPacket;
 use pocketmine\Player;
-use pocketmine\Server;
+
 
 class Effect{
 	const SPEED = 1;
@@ -83,7 +88,7 @@ class Effect{
 		self::$effects[Effect::HEALTH_BOOST] = new Effect(Effect::HEALTH_BOOST, "%potion.healthBoost", 248, 125, 35);
 		self::$effects[Effect::ABSORPTION] = new Effect(Effect::ABSORPTION, "%potion.absorption", 38, 83, 166);
 		self::$effects[Effect::SATURATION] = new Effect(Effect::SATURATION, "%potion.saturation", 248, 32, 32);
-		self::$effects[Effect::BLINDNESS] = new Effect(Effect::BLINDNESS, "%potion.blindness", 31, 31, 35);
+		self::$effects[Effect::BLINDNESS] = new Effect(Effect::BLINDNESS, "%potion.blindness", 31, 31, 35, true);
 		self::$effects[Effect::NIGHT_VISION] = new Effect(Effect::NIGHT_VISION, "%potion.nightVision", 31, 31, 163);
 	}
 
@@ -193,15 +198,28 @@ class Effect{
 				}
 				return true;
 			case Effect::WITHER:
-				if(($interval = (50 >> $this->amplifier)) > 0){
-					return ($this->duration % $interval) === 0;
-				}
-				return true;
-			case Effect::REGENERATION:
 				if(($interval = (40 >> $this->amplifier)) > 0){
 					return ($this->duration % $interval) === 0;
 				}
 				return true;
+			case Effect::REGENERATION:
+				if(($interval = (50 >> $this->amplifier)) > 0){
+					return ($this->duration % $interval) === 0;
+				}
+				return true;
+			case Effect::HUNGER:
+				if(($interval = (1 >> $this->amplifier)) > 0){
+					return ($this->duration % $interval) === 0;
+				}
+				return true;
+			case Effect::SATURATION:
+				if(($interval = (1 >> $this->amplifier)) > 0){
+					return ($this->duration % $interval) === 0;
+				}
+				return true;
+			case Effect::SPEED:
+			case Effect::SLOWNESS:
+			    return true;
 		}
 		return false;
 	}
@@ -226,6 +244,34 @@ class Effect{
 					$entity->heal($ev->getAmount(), $ev);
 				}
 				break;
+			case Effect::HUNGER:
+				if($entity instanceof Player){
+				        if($entity->getFood() > 0){;
+					        if($entity->getFood() - 0.025 * ($this->getAmplifier() + 1) > 0){
+					        	$entity->setFood($entity->getFood() - 0.025 * ($this->getAmplifier() + 1));
+					        }else{
+					        	$entity->setFood(0);
+					        }
+				        }
+				}
+				break;
+			case Effect::SATURATION:
+				if($entity instanceof Player){
+				        if($entity->getFood() < 20){;
+					        if($entity->getFood() + 1 * ($this->getAmplifier() + 1) > 20){
+					        	$entity->setFood(20);
+					        }else{
+					        	$entity->setFood($entity->getFood() + 1 * ($this->getAmplifier() + 1));
+					        }
+				        }
+				}
+				break;
+			case Effect::SPEED:
+			    if($entity instanceof Player) $entity->setSpeed(0.1 + ($this->amplifier + 1) * 0.01);
+			    break;
+			case Effect::SLOWNESS:
+			    if($entity instanceof Player) $entity->setSpeed(0.1 - ($this->amplifier + 1) * 0.01);
+			    break;
 		}
 	}
 

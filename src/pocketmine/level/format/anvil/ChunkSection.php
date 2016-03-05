@@ -2,26 +2,31 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
+ *  _                       _           _ __  __ _             
+ * (_)                     (_)         | |  \/  (_)            
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___  
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \ 
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/ 
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___| 
+ *                     __/ |                                   
+ *                    |___/                                                                     
+ * 
+ * This program is a third party build by ImagicalMine.
+ * 
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
+ * 
  *
 */
 
 namespace pocketmine\level\format\anvil;
 
-use pocketmine\nbt\tag\Compound;
+use pocketmine\nbt\tag\CompoundTag;
 
 class ChunkSection implements \pocketmine\level\format\ChunkSection{
 
@@ -31,7 +36,7 @@ class ChunkSection implements \pocketmine\level\format\ChunkSection{
 	private $blockLight;
 	private $skyLight;
 
-	public function __construct(Compound $nbt){
+	public function __construct(CompoundTag $nbt){
 		$this->y = (int) $nbt["Y"];
 		$this->blocks = (string) $nbt["Blocks"];
 		$this->data = (string) $nbt["Data"];
@@ -70,12 +75,6 @@ class ChunkSection implements \pocketmine\level\format\ChunkSection{
 		}
 	}
 
-	public function getBlock($x, $y, $z, &$blockId, &$meta = null){
-		$full = $this->getFullBlock($x, $y, $z);
-		$blockId = $full >> 4;
-		$meta = $full & 0x0f;
-	}
-
 	public function getFullBlock($x, $y, $z){
 		$i = ($y << 8) + ($z << 4) + $x;
 		if(($x & 1) === 0){
@@ -84,6 +83,12 @@ class ChunkSection implements \pocketmine\level\format\ChunkSection{
 			return (ord($this->blocks{$i}) << 4) | (ord($this->data{$i >> 1}) >> 4);
 		}
 	}
+
+	 public function getBlock($x, $y, $z, &$blockId, &$meta = null){
+                $full = $this->getFullBlock($x, $y, $z);
+                $blockId = $full >> 4;
+                $meta = $full & 0x0f;
+        }
 
 	public function setBlock($x, $y, $z, $blockId = null, $meta = null){
 		$i = ($y << 8) + ($z << 4) + $x;

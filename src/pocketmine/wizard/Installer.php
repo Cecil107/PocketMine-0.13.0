@@ -2,19 +2,24 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
- *
- * This program is free software: you can redistribute it and/or modify
+ *  _                       _           _ __  __ _             
+ * (_)                     (_)         | |  \/  (_)            
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___  
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \ 
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/ 
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___| 
+ *                     __/ |                                   
+ *                    |___/                                                                     
+ * 
+ * This program is a third party build by ImagicalMine.
+ * 
+ * ImagicalMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalmine.net/
  * 
  *
 */
@@ -38,31 +43,31 @@ class Installer{
 	private $lang;
 
 	public function __construct(){
-		echo "[*] PocketMine-MP set-up wizard\n";
+		echo "[*] ImagicalMine set-up wizard\n";
 		echo "[*] Please select a language:\n";
 		foreach(InstallerLang::$languages as $short => $native){
 			echo " $native => $short\n";
 		}
 		do{
 			echo "[?] Language (en): ";
-			$lang = \strtolower($this->getInput("en"));
+			$lang = strtolower($this->getInput("en"));
 			if(!isset(InstallerLang::$languages[$lang])){
 				echo "[!] Couldn't find the language\n";
-				$lang = \false;
+				$lang = false;
 			}
-		}while($lang == \false);
+		}while($lang == false);
 		$this->lang = new InstallerLang($lang);
 
 
 		echo "[*] " . $this->lang->language_has_been_selected . "\n";
 
 		if(!$this->showLicense()){
-			\pocketmine\kill(\getmypid());
+			\pocketmine\kill(getmypid());
 			exit(-1);
 		}
 
 		echo "[?] " . $this->lang->skip_installer . " (y/N): ";
-		if(\strtolower($this->getInput()) === "y"){
+		if(strtolower($this->getInput()) === "y"){
 			return;
 		}
 		echo "\n";
@@ -79,21 +84,24 @@ class Installer{
 		echo $this->lang->welcome_to_pocketmine . "\n";
 		echo <<<LICENSE
 
-  This program is free software: you can redistribute it and/or modify
+  PocketMine-MP is free software: you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-LICENSE;
-		echo "\n[?] " . $this->lang->accept_license . " (y/N): ";
-		if(\strtolower($this->getInput("n")) != "y"){
-			echo "[!] " . $this->lang->you_have_to_accept_the_license . "\n";
-			\sleep(5);
+  ImagicalMine is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License. The CC
+  license applies to all changes made by third-party organisations including the Imagical Corporation to ImagicalMine and the
+  PocketMine-MP code base.
 
-			return \false;
+LICENSE;
+		echo "\n[?] " . $this->lang->accept_license . " (Y/n): ";
+		if(strtolower($this->getInput("n")) != "y"){
+			echo "[!] " . $this->lang->you_have_to_accept_the_license . "\n";
+
+			return false;
 		}
 
-		return \true;
+		return true;
 	}
 
 	private function welcome(){
@@ -124,12 +132,18 @@ LICENSE;
 			echo "[?] " . $this->lang->default_gamemode . ": (" . self::DEFAULT_GAMEMODE . "): ";
 			$gamemode = (int) $this->getInput(self::DEFAULT_GAMEMODE);
 		}while($gamemode < 0 or $gamemode > 3);
-		$config->set("gamemode", $gamemode);
+		echo "[*] " . $this->lang->disable_logfile_info . "\n";
+		echo "[?] " . $this->lang->disable_logfile . " (Y/n): ";
+		if(strtolower($this->getInput("y")) == "n"){
+			$config->set("disable-logfile", 1);
+		}else{
+			$config->set("disable-logfile", 0);
+		}
 		echo "[?] " . $this->lang->max_players . " (" . self::DEFAULT_PLAYERS . "): ";
 		$config->set("max-players", (int) $this->getInput(self::DEFAULT_PLAYERS));
 		echo "[*] " . $this->lang->spawn_protection_info . "\n";
 		echo "[?] " . $this->lang->spawn_protection . " (Y/n): ";
-		if(\strtolower($this->getInput("y")) == "n"){
+		if(strtolower($this->getInput("y")) == "n"){
 			$config->set("spawn-protection", -1);
 		}else{
 			$config->set("spawn-protection", 16);
@@ -140,22 +154,22 @@ LICENSE;
 	private function generateUserFiles(){
 		echo "[*] " . $this->lang->op_info . "\n";
 		echo "[?] " . $this->lang->op_who . ": ";
-		$op = \strtolower($this->getInput(""));
+		$op = strtolower($this->getInput(""));
 		if($op === ""){
 			echo "[!] " . $this->lang->op_warning . "\n";
 		}else{
 			$ops = new Config(\pocketmine\DATA . "ops.txt", Config::ENUM);
-			$ops->set($op, \true);
+			$ops->set($op, true);
 			$ops->save();
 		}
 		echo "[*] " . $this->lang->whitelist_info . "\n";
 		echo "[?] " . $this->lang->whitelist_enable . " (y/N): ";
 		$config = new Config(\pocketmine\DATA . "server.properties", Config::PROPERTIES);
-		if(\strtolower($this->getInput("n")) === "y"){
+		if(strtolower($this->getInput("n")) === "y"){
 			echo "[!] " . $this->lang->whitelist_warning . "\n";
-			$config->set("white-list", \true);
+			$config->set("white-list", true);
 		}else{
-			$config->set("white-list", \false);
+			$config->set("white-list", false);
 		}
 		$config->save();
 	}
@@ -165,21 +179,21 @@ LICENSE;
 		echo "[!] " . $this->lang->query_warning1 . "\n";
 		echo "[!] " . $this->lang->query_warning2 . "\n";
 		echo "[?] " . $this->lang->query_disable . " (y/N): ";
-		if(\strtolower($this->getInput("n")) === "y"){
-			$config->set("enable-query", \false);
+		if(strtolower($this->getInput("n")) === "y"){
+			$config->set("enable-query", false);
 		}else{
-			$config->set("enable-query", \true);
+			$config->set("enable-query", true);
 		}
 
 		echo "[*] " . $this->lang->rcon_info . "\n";
 		echo "[?] " . $this->lang->rcon_enable . " (y/N): ";
-		if(\strtolower($this->getInput("n")) === "y"){
-			$config->set("enable-rcon", \true);
-			$password = \substr(\base64_encode(@Utils::getRandomBytes(20, \false)), 3, 10);
+		if(strtolower($this->getInput("n")) === "y"){
+			$config->set("enable-rcon", true);
+			$password = substr(base64_encode(@Utils::getRandomBytes(20, false)), 3, 10);
 			$config->set("rcon.password", $password);
 			echo "[*] " . $this->lang->rcon_password . ": " . $password . "\n";
 		}else{
-			$config->set("enable-rcon", \false);
+			$config->set("enable-rcon", false);
 		}
 
 		/*echo "[*] " . $this->lang->usage_info . "\n";
@@ -195,7 +209,7 @@ LICENSE;
 		echo "[*] " . $this->lang->ip_get . "\n";
 
 		$externalIP = Utils::getIP();
-		$internalIP = \gethostbyname(\trim(`hostname`));
+		$internalIP = gethostbyname(trim(`hostname`));
 
 		echo "[!] " . $this->lang->get("ip_warning", ["{{EXTERNAL_IP}}", "{{INTERNAL_IP}}"], [$externalIP, $internalIP]) . "\n";
 		echo "[!] " . $this->lang->ip_confirm;
@@ -206,11 +220,10 @@ LICENSE;
 		echo "[*] " . $this->lang->you_have_finished . "\n";
 		echo "[*] " . $this->lang->pocketmine_plugins . "\n";
 		echo "[*] " . $this->lang->pocketmine_will_start . "\n\n\n";
-		\sleep(4);
 	}
 
 	private function getInput($default = ""){
-		$input = \trim(\fgets(STDIN));
+		$input = trim(fgets(STDIN));
 
 		return $input === "" ? $default : $input;
 	}

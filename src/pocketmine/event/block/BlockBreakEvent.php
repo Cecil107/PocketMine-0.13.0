@@ -27,7 +27,7 @@ use pocketmine\item\Item;
 use pocketmine\Player;
 
 class BlockBreakEvent extends BlockEvent implements Cancellable{
-	public static $handlerList = \null;
+	public static $handlerList = null;
 
 	/** @var \pocketmine\Player */
 	protected $player;
@@ -36,14 +36,21 @@ class BlockBreakEvent extends BlockEvent implements Cancellable{
 	protected $item;
 
 	/** @var bool */
-	protected $instaBreak = \false;
+	protected $instaBreak = false;
 	protected $blockDrops = [];
 
-	public function __construct(Player $player, Block $block, Item $item, $instaBreak = \false){
+	protected $xpAmount;
+
+	protected $blocked;
+
+	public function __construct(Player $player, Block $block, Item $item, int $xpAmount = 0, bool $instaBreak = false, bool $speed = false){
 		$this->block = $block;
 		$this->item = $item;
 		$this->player = $player;
 		$this->instaBreak = (bool) $instaBreak;
+		$this->xpAmount = (int) $xpAmount;
+		$this->blocked = (bool) $speed;
+
 		$drops = $player->isSurvival() ? $block->getDrops($item) : [];
 		foreach($drops as $i){
 			$this->blockDrops[] = Item::get($i[0], $i[1], $i[2]);
@@ -81,5 +88,17 @@ class BlockBreakEvent extends BlockEvent implements Cancellable{
 	 */
 	public function setInstaBreak($instaBreak){
 		$this->instaBreak = (bool) $instaBreak;
+	}
+
+	public function isBlocked(){
+		return (bool) $this->blocked;
+	}
+
+	public function getExp() : int{
+		return $this->xpAmount;
+	}
+
+	public function setExp(int $xp){
+		$this->xpAmount = (int) $xp;
 	}
 }

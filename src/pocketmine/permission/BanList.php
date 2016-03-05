@@ -2,20 +2,25 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
+ *  _                       _           _ __  __ _             
+ * (_)                     (_)         | |  \/  (_)            
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___  
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \ 
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/ 
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___| 
+ *                     __/ |                                   
+ *                    |___/                                                                     
+ * 
+ * This program is a third party build by ImagicalMine.
+ * 
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
+ * 
  *
 */
 
@@ -33,7 +38,7 @@ class BanList{
 	private $file;
 
 	/** @var bool */
-	private $enabled = \true;
+	private $enabled = true;
 
 	/**
 	 * @param string $file
@@ -46,7 +51,7 @@ class BanList{
 	 * @return bool
 	 */
 	public function isEnabled(){
-		return $this->enabled === \true;
+		return $this->enabled === true;
 	}
 
 	/**
@@ -71,9 +76,9 @@ class BanList{
 	 * @return bool
 	 */
 	public function isBanned($name){
-		$name = \strtolower($name);
+		$name = strtolower($name);
 		if(!$this->isEnabled()){
-			return \false;
+			return false;
 		}else{
 			$this->removeExpired();
 
@@ -97,11 +102,11 @@ class BanList{
 	 *
 	 * @return BanEntry
 	 */
-	public function addBan($target, $reason = \null, $expires = \null, $source = \null){
+	public function addBan($target, $reason = null, $expires = null, $source = null){
 		$entry = new BanEntry($target);
-		$entry->setSource($source != \null ? $source : $entry->getSource());
+		$entry->setSource($source != null ? $source : $entry->getSource());
 		$entry->setExpires($expires);
-		$entry->setReason($reason != \null ? $reason : $entry->getReason());
+		$entry->setReason($reason != null ? $reason : $entry->getReason());
 
 		$this->list[$entry->getName()] = $entry;
 		$this->save();
@@ -113,7 +118,7 @@ class BanList{
 	 * @param string $name
 	 */
 	public function remove($name){
-		$name = \strtolower($name);
+		$name = strtolower($name);
 		if(isset($this->list[$name])){
 			unset($this->list[$name]);
 			$this->save();
@@ -130,9 +135,9 @@ class BanList{
 
 	public function load(){
 		$this->list = [];
-		$fp = @\fopen($this->file, "r");
-		if(\is_resource($fp)){
-			while(($line = \fgets($fp)) !== \false){
+		$fp = @fopen($this->file, "r");
+		if(is_resource($fp)){
+			while(($line = fgets($fp)) !== false){
 				if($line{0} !== "#"){
 					$entry = BanEntry::fromString($line);
 					if($entry instanceof BanEntry){
@@ -140,25 +145,25 @@ class BanList{
 					}
 				}
 			}
-			\fclose($fp);
+			fclose($fp);
 		}else{
 			MainLogger::getLogger()->error("Could not load ban list");
 		}
 	}
 
-	public function save($flag = \true){
+	public function save($flag = true){
 		$this->removeExpired();
-		$fp = @\fopen($this->file, "w");
-		if(\is_resource($fp)){
-			if($flag === \true){
-				\fwrite($fp, "# Updated " . \strftime("%x %H:%M", \time()) . " by " . Server::getInstance()->getName() . " " . Server::getInstance()->getPocketMineVersion() . "\n");
-				\fwrite($fp, "# victim name | ban date | banned by | banned until | reason\n\n");
+		$fp = @fopen($this->file, "w");
+		if(is_resource($fp)){
+			if($flag === true){
+				fwrite($fp, "# Updated " . strftime("%x %H:%M", time()) . " by " . Server::getInstance()->getName() . " " . Server::getInstance()->getPocketMineVersion() . "\n");
+				fwrite($fp, "# victim name | ban date | banned by | banned until | reason\n\n");
 			}
 
 			foreach($this->list as $entry){
-				\fwrite($fp, $entry->getString() . "\n");
+				fwrite($fp, $entry->getString() . "\n");
 			}
-			\fclose($fp);
+			fclose($fp);
 		}else{
 			MainLogger::getLogger()->error("Could not save ban list");
 		}

@@ -1,29 +1,11 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- * 
- *
-*/
-
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\level\Level;
 use pocketmine\Player;
+
 
 class TallGrass extends Flowable{
 
@@ -34,8 +16,8 @@ class TallGrass extends Flowable{
 	}
 	
 	public function canBeActivated(){
-		return true;
-	}
+ 		return true;
+ 	}
 
 	public function canBeReplaced(){
 		return true;
@@ -53,7 +35,7 @@ class TallGrass extends Flowable{
 	
 	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
 		$down = $this->getSide(0);
-		if($down->getId() === self::GRASS){
+		if($down->getId() === self::GRASS or $down->getId() === self::DIRT or $down->getId() === self::PODZOL){
 			$this->getLevel()->setBlock($block, $this, true);
 
 			return true;
@@ -63,11 +45,19 @@ class TallGrass extends Flowable{
 	}
 	
 	public function onActivate(Item $item, Player $player = null){
-		if($item->getId() === Item::DYE and $item->getDamage() === 0x0F){
-			$this->getLevel()->setBlock($this->getSide(1), new DoublePlant(2));
-		}
+		if($item->getId() === Item::DYE and $item->getDamage() === 0x0F and ($this->getDamage() === 1 || $this->getDamage() === 2)){
+			$this->getLevel()->setBlock($this->getSide(1), new DoublePlant(($this->getDamage() + 1) ^ 0x08));
+			$this->getLevel()->setBlock($this, new DoublePlant($this->getDamage() + 1));
+			return true;
+		}else{return false;}
 	}
-
+    
+/*	public function onActivate(Item $item, Player $player = null){
+ 		if($item->getId() === Item::DYE and $item->getDamage() === 0x0F){
+ 		$this->getLevel()->setBlock($this->getSide(1), new DoublePlant(2));
+ 		}
+ 	}
+*/	
 	public function onUpdate($type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
 			if($this->getSide(0)->isTransparent() === true){ //Replace with common break method
@@ -81,8 +71,14 @@ class TallGrass extends Flowable{
 	}
 
 	public function getDrops(Item $item){
-		if(mt_rand(0, 15) === 0){
-			return [Item::WHEAT_SEEDS, 0, 1];
+		if($item->isShears()){
+			return [
+				[$this->id, $this->meta, 1]
+			];
+		}elseif(mt_rand(0, 15) === 0){
+			return [
+				[Item::WHEAT_SEEDS, 0, 1]
+			];
 		}
 
 		return [];

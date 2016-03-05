@@ -2,19 +2,24 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
- *
- * This program is free software: you can redistribute it and/or modify
+ *  _                       _           _ __  __ _             
+ * (_)                     (_)         | |  \/  (_)            
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___  
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \ 
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/ 
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___| 
+ *                     __/ |                                   
+ *                    |___/                                                                     
+ * 
+ * This program is a third party build by ImagicalMine.
+ * 
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
  * 
  *
 */
@@ -31,10 +36,10 @@ class Enchantment{
 	const TYPE_ARMOR_FALL_PROTECTION = 2;
 	const TYPE_ARMOR_EXPLOSION_PROTECTION = 3;
 	const TYPE_ARMOR_PROJECTILE_PROTECTION = 4;
-	const TYPE_ARMOR_THORNS = 5;
-	const TYPE_WATER_BREATHING = 6;
-	const TYPE_WATER_SPEED = 7;
-	const TYPE_WATER_AFFINITY = 8;
+	const TYPE_ARMOR_THORNS = 7;
+	const TYPE_WATER_BREATHING = 5;
+	const TYPE_WATER_SPEED = 8;
+	const TYPE_WATER_AFFINITY = 6;
 	const TYPE_WEAPON_SHARPNESS = 9;
 	const TYPE_WEAPON_SMITE = 10;
 	const TYPE_WEAPON_ARTHROPODS = 11;
@@ -125,7 +130,7 @@ class Enchantment{
 		return new Enchantment(self::TYPE_INVALID, "unknown", 0, 0, 0);
 	}
 
-	public static function getEffectByName($name){
+	public static function getEnchantmentByName($name){
 		if(defined(Enchantment::class . "::TYPE_" . strtoupper($name))){
 			return self::getEnchantment(constant(Enchantment::class . "::TYPE_" . strtoupper($name)));
 		}

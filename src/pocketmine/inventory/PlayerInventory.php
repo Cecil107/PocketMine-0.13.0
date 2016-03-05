@@ -2,31 +2,41 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *  _                       _           _ __  __ _
+ * (_)                     (_)         | |  \/  (_)
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___|
+ *                     __/ |
+ *                    |___/
  *
- * This program is free software: you can redistribute it and/or modify
+ * This program is a third party build by ImagicalMine.
+ *
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
  *
  *
 */
 
 namespace pocketmine\inventory;
 
+use pocketmine\entity\FishingHook;
 use pocketmine\entity\Human;
 use pocketmine\event\entity\EntityArmorChangeEvent;
+use pocketmine\event\entity\EntityDamageByChildEntityEvent;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityInventoryChangeEvent;
 use pocketmine\event\player\PlayerItemHeldEvent;
+use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
-use pocketmine\network\Network;
+
 use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\network\protocol\MobArmorEquipmentPacket;
@@ -46,11 +56,11 @@ class PlayerInventory extends BaseInventory{
 	}
 
 	public function getSize(){
-		return parent::getSize() - 4; //Remove armor slots
+		return parent::getSize() - 13; //Remove armor slots + 9 hotbar slots
 	}
 
 	public function setSize($size){
-		parent::setSize($size + 4);
+		parent::setSize($size + 13);
 		$this->sendContents($this->getViewers());
 	}
 
@@ -113,6 +123,10 @@ class PlayerInventory extends BaseInventory{
 				if($ev->isCancelled()){
 					$this->sendContents($this->getHolder());
 					return;
+				}
+
+				if($this->getHolder()->fishingHook instanceof FishingHook){
+					$this->getHolder()->fishingHook->close();
 				}
 			}
 
@@ -233,7 +247,9 @@ class PlayerInventory extends BaseInventory{
 		$old = $this->getItem($index);
 		$this->slots[$index] = clone $item;
 		$this->onSlotChange($index, $old);
-
+                if($this->getHolder() instanceof Player){
+			if($this->getHolder()->isSurvival()) $this->sendContents($this->getHolder());
+		}
 		return true;
 	}
 
@@ -381,21 +397,11 @@ class PlayerInventory extends BaseInventory{
 		if($target instanceof Player){
 			$target = [$target];
 		}
-
 		$pk = new ContainerSetContentPacket();
 		$pk->slots = [];
 		$holder = $this->getHolder();
-		if($holder instanceof Player and $holder->isCreative()){
-			// mwvent - return because this packet causes problems - TODO: why?
-			return;
-			//TODO: Remove this workaround because of broken client
-			foreach(Item::getCreativeItems() as $i => $item){
-				$pk->slots[$i] = Item::getCreativeItem($i);
-			}
-		}else{
-			for($i = 0; $i < $this->getSize(); ++$i){ //Do not send armor by error here
-				$pk->slots[$i] = $this->getItem($i);
-			}
+		for ($i = 0; $i < $this->getSize(); ++$i) { //Do not send armor by error here
+			$pk->slots[$i] = $this->getItem($i);
 		}
 
 		foreach($target as $player){
@@ -415,6 +421,20 @@ class PlayerInventory extends BaseInventory{
 		}
 	}
 
+	public function addItem(...$slots) {
+		$result = parent::addItem(...$slots);
+		if($this->getHolder() instanceof Player){
+			if($this->getHolder()->isSurvival()) $this->sendContents($this->getHolder());
+		}
+		return $result;
+	}
+	public function removeItem(...$slots){
+		$result = parent::removeItem(...$slots);
+		if($this->getHolder() instanceof Player){
+			if($this->getHolder()->isSurvival()) $this->sendContents($this->getHolder());
+		}
+		return $result;
+	}
 	/**
 	 * @param int             $index
 	 * @param Player|Player[] $target
@@ -425,6 +445,11 @@ class PlayerInventory extends BaseInventory{
 		}
 
 		$pk = new ContainerSetSlotPacket();
+		$pk->hotbar = [];
+		for ($i = 0; $i < $this->getHotbarSize(); ++$i) {
+			$index = $this->getHotbarSlotIndex($i);
+			$pk->hotbar[] = $index <= -1 ? -1 : $index + 9;
+		}
 		$pk->slot = $index;
 		$pk->item = clone $this->getItem($index);
 
@@ -449,6 +474,51 @@ class PlayerInventory extends BaseInventory{
 	 */
 	public function getHolder(){
 		return parent::getHolder();
+	}
+
+	public function calculateArmorModifiers(EntityDamageEvent $source){
+		$protection = 0;
+
+		$protectionEnch = null;
+		$modifier = 0;
+
+		if($source instanceof EntityDamageByEntityEvent || $source instanceof EntityDamageByChildEntityEvent){
+			$damager = $source->getDamager();
+		} else{
+			$damager = null;
+		}
+
+		switch($source->getCause()){
+			case EntityDamageEvent::CAUSE_FIRE:
+			case EntityDamageEvent::CAUSE_FIRE_TICK:
+			case EntityDamageEvent::CAUSE_LAVA:
+				$protectionEnch = Enchantment::TYPE_ARMOR_FIRE_PROTECTION;
+				$modifier = 1.25;
+				break;
+			case EntityDamageEvent::CAUSE_FALL:
+				$protectionEnch = Enchantment::TYPE_ARMOR_FALL_PROTECTION;
+				$modifier = 2.5;
+				break;
+			case EntityDamageEvent::CAUSE_PROJECTILE:
+				$protectionEnch = Enchantment::TYPE_ARMOR_PROJECTILE_PROTECTION;
+				$modifier = 1.5;
+				break;
+			case EntityDamageEvent::CAUSE_BLOCK_EXPLOSION:
+			case EntityDamageEvent::CAUSE_ENTITY_EXPLOSION:
+				$protectionEnch = Enchantment::TYPE_ARMOR_EXPLOSION_PROTECTION;
+				$modifier = 1.5;
+				break;
+		}
+
+		foreach($this->getArmorContents() as $item){
+			$protection += $item->getProtection();
+
+			if($protectionEnch != null && ($ench = $item->getEnchantment($protectionEnch)) != null){
+				$protection += floor((6 + $ench->getLevel()^2) * $modifier / 3);
+			}
+		}
+
+		return $protection;
 	}
 
 }

@@ -2,20 +2,25 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ *  _                       _           _ __  __ _
+ * (_)                     (_)         | |  \/  (_)
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___|
+ *                     __/ |
+ *                    |___/
  *
- * This program is free software: you can redistribute it and/or modify
+ * This program is a third party build by ImagicalMine.
+ *
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- * 
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
+ *
  *
 */
 
@@ -31,8 +36,8 @@ use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\Timings;
 use pocketmine\item\Item as ItemItem;
 use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\Short;
-use pocketmine\network\Network;
+use pocketmine\nbt\tag\ShortTag;
+
 use pocketmine\network\protocol\EntityEventPacket;
 
 use pocketmine\Server;
@@ -44,19 +49,19 @@ abstract class Living extends Entity implements Damageable{
 	protected $drag = 0.02;
 
 	protected $attackTime = 0;
-	
+
 	protected $invisible = false;
 
 	protected function initEntity(){
 		parent::initEntity();
 
 		if(isset($this->namedtag->HealF)){
-			$this->namedtag->Health = new Short("Health", (int) $this->namedtag["HealF"]);
+			$this->namedtag->Health = new ShortTag("Health", (int) $this->namedtag["HealF"]);
 			unset($this->namedtag->HealF);
 		}
 
-		if(!isset($this->namedtag->Health) or !($this->namedtag->Health instanceof Short)){
-			$this->namedtag->Health = new Short("Health", $this->getMaxHealth());
+		if(!isset($this->namedtag->Health) or !($this->namedtag->Health instanceof ShortTag)){
+			$this->namedtag->Health = new ShortTag("Health", $this->getMaxHealth());
 		}
 
 		$this->setHealth($this->namedtag["Health"]);
@@ -75,10 +80,8 @@ abstract class Living extends Entity implements Damageable{
 
 	public function saveNBT(){
 		parent::saveNBT();
-		$this->namedtag->Health = new Short("Health", $this->getHealth());
+		$this->namedtag->Health = new ShortTag("Health", $this->getHealth());
 	}
-
-	public abstract function getName();
 
 	public function hasLineOfSight(Entity $entity){
 		//TODO: head height
@@ -103,7 +106,7 @@ abstract class Living extends Entity implements Damageable{
 			}
 		}
 
-        parent::attack($damage, $source);
+        parent::attack($source->getFinalDamage(), $source);
 
         if($source->isCancelled()){
             return;
@@ -123,10 +126,9 @@ abstract class Living extends Entity implements Damageable{
 			$deltaZ = $this->z - $e->z;
 			$this->knockBack($e, $damage, $deltaX, $deltaZ, $source->getKnockBack());
 		}
-
 		$pk = new EntityEventPacket();
 		$pk->eid = $this->getId();
-		$pk->event = $this->getHealth() <= 0 ? EntityEventPacket::DEATH_ANIMATION : EntityEventPacket::HURT_ANIMATION; //Ouch!
+		$pk->event = $this->getHealth() <= 0?EntityEventPacket::DEATH_ANIMATION:EntityEventPacket::HURT_ANIMATION; // Ouch!
 		Server::broadcastPacket($this->hasSpawned, $pk);
 
 		$this->attackTime = 10; //0.5 seconds cooldown

@@ -2,20 +2,25 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
+ *  _                       _           _ __  __ _             
+ * (_)                     (_)         | |  \/  (_)            
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___  
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \ 
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/ 
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___| 
+ *                     __/ |                                   
+ *                    |___/                                                                     
+ * 
+ * This program is a third party build by ImagicalMine.
+ * 
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
+ * 
  *
 */
 
@@ -33,10 +38,10 @@ class PluginDescription{
 	private $loadBefore = [];
 	private $version;
 	private $commands = [];
-	private $description = \null;
+	private $description = null;
 	private $authors = [];
-	private $website = \null;
-	private $prefix = \null;
+	private $website = null;
+	private $prefix = null;
 	private $order = PluginLoadOrder::POSTWORLD;
 
 	/**
@@ -48,7 +53,7 @@ class PluginDescription{
 	 * @param string|array $yamlString
 	 */
 	public function __construct($yamlString){
-		$this->loadMap(!\is_array($yamlString) ? \yaml_parse($yamlString) : $yamlString);
+		$this->loadMap(!is_array($yamlString) ? yaml_parse($yamlString) : $yamlString);
 	}
 
 	/**
@@ -57,19 +62,19 @@ class PluginDescription{
 	 * @throws PluginException
 	 */
 	private function loadMap(array $plugin){
-		$this->name = \preg_replace("[^A-Za-z0-9 _.-]", "", $plugin["name"]);
+		$this->name = preg_replace("[^A-Za-z0-9 _.-]", "", $plugin["name"]);
 		if($this->name === ""){
 			throw new PluginException("Invalid PluginDescription name");
 		}
-		$this->name = \str_replace(" ", "_", $this->name);
+		$this->name = str_replace(" ", "_", $this->name);
 		$this->version = $plugin["version"];
 		$this->main = $plugin["main"];
-		$this->api = !\is_array($plugin["api"]) ? [$plugin["api"]] : $plugin["api"];
-		if(\stripos($this->main, "pocketmine\\") === 0){
+		$this->api = !is_array($plugin["api"]) ? [$plugin["api"]] : $plugin["api"];
+		if(stripos($this->main, "pocketmine\\") === 0){
 			throw new PluginException("Invalid PluginDescription main, cannot start within the PocketMine namespace");
 		}
 
-		if(isset($plugin["commands"]) and \is_array($plugin["commands"])){
+		if(isset($plugin["commands"]) and is_array($plugin["commands"])){
 			$this->commands = $plugin["commands"];
 		}
 
@@ -93,11 +98,11 @@ class PluginDescription{
 			$this->prefix = $plugin["prefix"];
 		}
 		if(isset($plugin["load"])){
-			$order = \strtoupper($plugin["load"]);
-			if(!\defined(PluginLoadOrder::class . "::" . $order)){
+			$order = strtoupper($plugin["load"]);
+			if(!defined(PluginLoadOrder::class . "::" . $order)){
 				throw new PluginException("Invalid PluginDescription load");
 			}else{
-				$this->order = \constant(PluginLoadOrder::class . "::" . $order);
+				$this->order = constant(PluginLoadOrder::class . "::" . $order);
 			}
 		}
 		$this->authors = [];

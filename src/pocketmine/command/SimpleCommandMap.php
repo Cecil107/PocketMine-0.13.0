@@ -2,19 +2,24 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *  _                       _           _ __  __ _
+ * (_)                     (_)         | |  \/  (_)
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___|
+ *                     __/ |
+ *                    |___/
  *
- * This program is free software: you can redistribute it and/or modify
+ * This program is a third party build by ImagicalMine.
+ *
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
  *
  *
 */
@@ -30,6 +35,7 @@ use pocketmine\command\defaults\DifficultyCommand;
 use pocketmine\command\defaults\DumpMemoryCommand;
 use pocketmine\command\defaults\EffectCommand;
 use pocketmine\command\defaults\EnchantCommand;
+use pocketmine\command\defaults\ExpCommand;
 use pocketmine\command\defaults\GamemodeCommand;
 use pocketmine\command\defaults\GarbageCollectorCommand;
 use pocketmine\command\defaults\GiveCommand;
@@ -59,10 +65,12 @@ use pocketmine\command\defaults\TimeCommand;
 use pocketmine\command\defaults\TimingsCommand;
 use pocketmine\command\defaults\VanillaCommand;
 use pocketmine\command\defaults\VersionCommand;
+use pocketmine\command\defaults\WeatherCommand;
 use pocketmine\command\defaults\WhitelistCommand;
+use pocketmine\command\defaults\WorldTeleportCommand;
+use pocketmine\command\defaults\FillCommand;
 use pocketmine\event\TranslationContainer;
 use pocketmine\Server;
-use pocketmine\utils\MainLogger;
 use pocketmine\utils\TextFormat;
 
 class SimpleCommandMap implements CommandMap{
@@ -81,6 +89,7 @@ class SimpleCommandMap implements CommandMap{
 	}
 
 	private function setDefaultCommands(){
+		$this->register("pocketmine", new FillCommand("fill"));
 		$this->register("pocketmine", new VersionCommand("version"));
 		$this->register("pocketmine", new PluginsCommand("plugins"));
 		$this->register("pocketmine", new SeedCommand("seed"));
@@ -107,6 +116,7 @@ class SimpleCommandMap implements CommandMap{
 		$this->register("pocketmine", new GiveCommand("give"));
 		$this->register("pocketmine", new EffectCommand("effect"));
 		$this->register("pocketmine", new EnchantCommand("enchant"));
+		$this->register("pocketmine", new ExpCommand("xp"));
 		$this->register("pocketmine", new ParticleCommand("particle"));
 		$this->register("pocketmine", new GamemodeCommand("gamemode"));
 		$this->register("pocketmine", new KillCommand("kill"));
@@ -116,8 +126,10 @@ class SimpleCommandMap implements CommandMap{
 		$this->register("pocketmine", new TimeCommand("time"));
 		$this->register("pocketmine", new TimingsCommand("timings"));
 		$this->register("pocketmine", new ReloadCommand("reload"));
+		$this->register("pocketmine", new WeatherCommand("weather"));
+		$this->register("pocketmine", new WorldTeleportCommand("wtp"));
 
-		if($this->server->getProperty("debug.commands", \false)){
+		if($this->server->getProperty("debug.commands", false)){
 			$this->register("pocketmine", new StatusCommand("status"));
 			$this->register("pocketmine", new GarbageCollectorCommand("gc"));
 			$this->register("pocketmine", new DumpMemoryCommand("dumpmemory"));
@@ -131,18 +143,18 @@ class SimpleCommandMap implements CommandMap{
 		}
 	}
 
-	public function register($fallbackPrefix, Command $command, $label = \null){
-		if($label === \null){
+	public function register($fallbackPrefix, Command $command, $label = null){
+		if($label === null){
 			$label = $command->getName();
 		}
-		$label = \strtolower(\trim($label));
-		$fallbackPrefix = \strtolower(\trim($fallbackPrefix));
+		$label = strtolower(trim($label));
+		$fallbackPrefix = strtolower(trim($fallbackPrefix));
 
-		$registered = $this->registerAlias($command, \false, $fallbackPrefix, $label);
+		$registered = $this->registerAlias($command, false, $fallbackPrefix, $label);
 
 		$aliases = $command->getAliases();
 		foreach($aliases as $index => $alias){
-			if(!$this->registerAlias($command, \true, $fallbackPrefix, $alias)){
+			if(!$this->registerAlias($command, true, $fallbackPrefix, $alias)){
 				unset($aliases[$index]);
 			}
 		}
@@ -160,11 +172,11 @@ class SimpleCommandMap implements CommandMap{
 	private function registerAlias(Command $command, $isAlias, $fallbackPrefix, $label){
 		$this->knownCommands[$fallbackPrefix . ":" . $label] = $command;
 		if(($command instanceof VanillaCommand or $isAlias) and isset($this->knownCommands[$label])){
-			return \false;
+			return false;
 		}
 
-		if(isset($this->knownCommands[$label]) and $this->knownCommands[$label]->getLabel() !== \null and $this->knownCommands[$label]->getLabel() === $label){
-			return \false;
+		if(isset($this->knownCommands[$label]) and $this->knownCommands[$label]->getLabel() !== null and $this->knownCommands[$label]->getLabel() === $label){
+			return false;
 		}
 
 		if(!$isAlias){
@@ -173,37 +185,34 @@ class SimpleCommandMap implements CommandMap{
 
 		$this->knownCommands[$label] = $command;
 
-		return \true;
+		return true;
 	}
 
 	public function dispatch(CommandSender $sender, $commandLine){
-		$args = \explode(" ", $commandLine);
+		$args = explode(" ", $commandLine);
 
-		if(\count($args) === 0){
-			return \false;
+		if(count($args) === 0){
+			return false;
 		}
 
-		$sentCommandLabel = \strtolower(\array_shift($args));
+		$sentCommandLabel = strtolower(array_shift($args));
 		$target = $this->getCommand($sentCommandLabel);
 
-		if($target === \null){
-			return \false;
+		if($target === null){
+			return false;
 		}
 
 		$target->timings->startTiming();
 		try{
 			$target->execute($sender, $sentCommandLabel, $args);
-		}catch(\Exception $e){
+		}catch(\Throwable $e){
 			$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.exception"));
 			$this->server->getLogger()->critical($this->server->getLanguage()->translateString("pocketmine.command.exception", [$commandLine, (string) $target, $e->getMessage()]));
-			$logger = $sender->getServer()->getLogger();
-			if($logger instanceof MainLogger){
-				$logger->logException($e);
-			}
+			$sender->getServer()->getLogger()->logException($e);
 		}
 		$target->timings->stopTiming();
 
-		return \true;
+		return true;
 	}
 
 	public function clearCommands(){
@@ -219,7 +228,7 @@ class SimpleCommandMap implements CommandMap{
 			return $this->knownCommands[$name];
 		}
 
-		return \null;
+		return null;
 	}
 
 	/**
@@ -237,7 +246,7 @@ class SimpleCommandMap implements CommandMap{
 		$values = $this->server->getCommandAliases();
 
 		foreach($values as $alias => $commandStrings){
-			if(\strpos($alias, ":") !== \false or \strpos($alias, " ") !== \false){
+			if(strpos($alias, ":") !== false or strpos($alias, " ") !== false){
 				$this->server->getLogger()->warning($this->server->getLanguage()->translateString("pocketmine.command.alias.illegal", [$alias]));
 				continue;
 			}
@@ -246,11 +255,11 @@ class SimpleCommandMap implements CommandMap{
 
 			$bad = "";
 			foreach($commandStrings as $commandString){
-				$args = \explode(" ", $commandString);
+				$args = explode(" ", $commandString);
 				$command = $this->getCommand($args[0]);
 
-				if($command === \null){
-					if(\strlen($bad) > 0){
+				if($command === null){
+					if(strlen($bad) > 0){
 						$bad .= ", ";
 					}
 					$bad .= $commandString;
@@ -259,16 +268,16 @@ class SimpleCommandMap implements CommandMap{
 				}
 			}
 
-			if(\strlen($bad) > 0){
+			if(strlen($bad) > 0){
 				$this->server->getLogger()->warning($this->server->getLanguage()->translateString("pocketmine.command.alias.notFound", [$alias, $bad]));
 				continue;
 			}
 
 			//These registered commands have absolute priority
-			if(\count($targets) > 0){
-				$this->knownCommands[\strtolower($alias)] = new FormattedCommandAlias(\strtolower($alias), $targets);
+			if(count($targets) > 0){
+				$this->knownCommands[strtolower($alias)] = new FormattedCommandAlias(strtolower($alias), $targets);
 			}else{
-				unset($this->knownCommands[\strtolower($alias)]);
+				unset($this->knownCommands[strtolower($alias)]);
 			}
 
 		}

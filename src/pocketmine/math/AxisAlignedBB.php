@@ -2,20 +2,25 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
+ *  _                       _           _ __  __ _             
+ * (_)                     (_)         | |  \/  (_)            
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___  
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \ 
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/ 
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___| 
+ *                     __/ |                                   
+ *                    |___/                                                                     
+ * 
+ * This program is a third party build by ImagicalMine.
+ * 
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
+ * 
  *
 */
 
@@ -212,15 +217,15 @@ class AxisAlignedBB{
 			}
 		}
 
-		return \false;
+		return false;
 	}
 
 	public function isVectorInside(Vector3 $vector){
 		if($vector->x <= $this->minX or $vector->x >= $this->maxX){
-			return \false;
+			return false;
 		}
 		if($vector->y <= $this->minY or $vector->y >= $this->maxY){
-			return \false;
+			return false;
 		}
 
 		return $vector->z > $this->minZ and $vector->z < $this->maxZ;
@@ -250,59 +255,59 @@ class AxisAlignedBB{
 		$v5 = $pos1->getIntermediateWithZValue($pos2, $this->minZ);
 		$v6 = $pos1->getIntermediateWithZValue($pos2, $this->maxZ);
 
-		if($v1 !== \null and !$this->isVectorInYZ($v1)){
-			$v1 = \null;
+		if($v1 !== null and !$this->isVectorInYZ($v1)){
+			$v1 = null;
 		}
 
-		if($v2 !== \null and !$this->isVectorInYZ($v2)){
-			$v2 = \null;
+		if($v2 !== null and !$this->isVectorInYZ($v2)){
+			$v2 = null;
 		}
 
-		if($v3 !== \null and !$this->isVectorInXZ($v3)){
-			$v3 = \null;
+		if($v3 !== null and !$this->isVectorInXZ($v3)){
+			$v3 = null;
 		}
 
-		if($v4 !== \null and !$this->isVectorInXZ($v4)){
-			$v4 = \null;
+		if($v4 !== null and !$this->isVectorInXZ($v4)){
+			$v4 = null;
 		}
 
-		if($v5 !== \null and !$this->isVectorInXY($v5)){
-			$v5 = \null;
+		if($v5 !== null and !$this->isVectorInXY($v5)){
+			$v5 = null;
 		}
 
-		if($v6 !== \null and !$this->isVectorInXY($v6)){
-			$v6 = \null;
+		if($v6 !== null and !$this->isVectorInXY($v6)){
+			$v6 = null;
 		}
 
-		$vector = \null;
+		$vector = null;
 
 
-		if($v1 !== \null and ($vector === \null or $pos1->distanceSquared($v1) < $pos1->distanceSquared($vector))){
+		if($v1 !== null and ($vector === null or $pos1->distanceSquared($v1) < $pos1->distanceSquared($vector))){
 			$vector = $v1;
 		}
 
-		if($v2 !== \null and ($vector === \null or $pos1->distanceSquared($v2) < $pos1->distanceSquared($vector))){
+		if($v2 !== null and ($vector === null or $pos1->distanceSquared($v2) < $pos1->distanceSquared($vector))){
 			$vector = $v2;
 		}
 
-		if($v3 !== \null and ($vector === \null or $pos1->distanceSquared($v3) < $pos1->distanceSquared($vector))){
+		if($v3 !== null and ($vector === null or $pos1->distanceSquared($v3) < $pos1->distanceSquared($vector))){
 			$vector = $v3;
 		}
 
-		if($v4 !== \null and ($vector === \null or $pos1->distanceSquared($v4) < $pos1->distanceSquared($vector))){
+		if($v4 !== null and ($vector === null or $pos1->distanceSquared($v4) < $pos1->distanceSquared($vector))){
 			$vector = $v4;
 		}
 
-		if($v5 !== \null and ($vector === \null or $pos1->distanceSquared($v5) < $pos1->distanceSquared($vector))){
+		if($v5 !== null and ($vector === null or $pos1->distanceSquared($v5) < $pos1->distanceSquared($vector))){
 			$vector = $v5;
 		}
 
-		if($v6 !== \null and ($vector === \null or $pos1->distanceSquared($v6) < $pos1->distanceSquared($vector))){
+		if($v6 !== null and ($vector === null or $pos1->distanceSquared($v6) < $pos1->distanceSquared($vector))){
 			$vector = $v6;
 		}
 
-		if($vector === \null){
-			return \null;
+		if($vector === null){
+			return null;
 		}
 
 		$f = -1;

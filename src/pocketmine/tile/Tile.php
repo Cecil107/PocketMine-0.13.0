@@ -2,49 +2,52 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ *  _                       _           _ __  __ _
+ * (_)                     (_)         | |  \/  (_)
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___|
+ *                     __/ |
+ *                    |___/
  *
- * This program is free software: you can redistribute it and/or modify
+ * This program is a third party build by ImagicalMine.
+ *
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- * 
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
+ *
  *
 */
 
 /**
  * All the Tile classes and related classes
- * TODO: Add Nether Reactor tile
  */
 namespace pocketmine\tile;
 
 use pocketmine\event\Timings;
-use pocketmine\level\format\Chunk;
-use pocketmine\level\format\FullChunk;
-use pocketmine\level\Level;
-use pocketmine\level\Position;
-use pocketmine\nbt\tag\Compound;
-use pocketmine\nbt\tag\Int;
-use pocketmine\nbt\tag\String;
-use pocketmine\utils\ChunkException;
+use pocketmine\level\format\{Chunk, FullChunk};
+use pocketmine\level\{Position, Level};
+use pocketmine\nbt\tag\{CompoundTag, IntTag, StringTag};
 
 abstract class Tile extends Position{
+
 	const SIGN = "Sign";
 	const CHEST = "Chest";
 	const FURNACE = "Furnace";
 	const FLOWER_POT = "FlowerPot";
 	const MOB_SPAWNER = "MobSpawner";
 	const SKULL = "Skull";
-	const BREWING_STAND = "Cauldron";
+	const BREWING_STAND = "Cauldron"; //i think
 	const ENCHANT_TABLE = "EnchantTable";
-
+	const TRAPPED_CHEST = "TrappedChest";
+	const HOPPER = "Hopper";
+	const DISPENSER = "Dispenser";
+	const DROPPER = "Dropper";
 	public static $tileCount = 1;
 
 	private static $knownTiles = [];
@@ -71,12 +74,12 @@ abstract class Tile extends Position{
 	/**
 	 * @param string    $type
 	 * @param FullChunk $chunk
-	 * @param Compound  $nbt
+	 * @param CompoundTag $nbt
 	 * @param           $args
 	 *
 	 * @return Tile
 	 */
-	public static function createTile($type, FullChunk $chunk, Compound $nbt, ...$args){
+	public static function createTile($type, FullChunk $chunk, CompoundTag $nbt, ...$args){
 		if(isset(self::$knownTiles[$type])){
 			$class = self::$knownTiles[$type];
 			return new $class($chunk, $nbt, ...$args);
@@ -110,10 +113,8 @@ abstract class Tile extends Position{
 		return self::$shortNames[static::class];
 	}
 
-	public function __construct(FullChunk $chunk, Compound $nbt){
-		if($chunk === null or $chunk->getProvider() === null){
-			throw new ChunkException("Invalid garbage Chunk given to Tile");
-		}
+	public function __construct(FullChunk $chunk, CompoundTag $nbt){
+		assert($chunk !== null and $chunk->getProvider() !== null);
 
 		$this->timings = Timings::getTileEntityTimings($this);
 
@@ -138,10 +139,10 @@ abstract class Tile extends Position{
 	}
 
 	public function saveNBT(){
-		$this->namedtag->id = new String("id", $this->getSaveId());
-		$this->namedtag->x = new Int("x", $this->x);
-		$this->namedtag->y = new Int("y", $this->y);
-		$this->namedtag->z = new Int("z", $this->z);
+		$this->namedtag->id = new StringTag("id", $this->getSaveId());
+		$this->namedtag->x = new IntTag("x", $this->x);
+		$this->namedtag->y = new IntTag("y", $this->y);
+		$this->namedtag->z = new IntTag("z", $this->z);
 	}
 
 	/**

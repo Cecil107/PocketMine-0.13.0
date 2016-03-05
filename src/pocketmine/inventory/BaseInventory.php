@@ -2,19 +2,24 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *  _                       _           _ __  __ _
+ * (_)                     (_)         | |  \/  (_)
+ *  _ _ __ ___   __ _  __ _ _  ___ __ _| | \  / |_ _ __   ___
+ * | | '_ ` _ \ / _` |/ _` | |/ __/ _` | | |\/| | | '_ \ / _ \
+ * | | | | | | | (_| | (_| | | (_| (_| | | |  | | | | | |  __/
+ * |_|_| |_| |_|\__,_|\__, |_|\___\__,_|_|_|  |_|_|_| |_|\___|
+ *                     __/ |
+ *                    |___/
  *
- * This program is free software: you can redistribute it and/or modify
+ * This program is a third party build by ImagicalMine.
+ *
+ * PocketMine is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author ImagicalMine Team
+ * @link http://forums.imagicalcorp.ml/
  *
  *
 */
@@ -25,7 +30,7 @@ use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityInventoryChangeEvent;
 use pocketmine\event\inventory\InventoryOpenEvent;
 use pocketmine\item\Item;
-use pocketmine\network\Network;
+
 use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\Player;
@@ -115,11 +120,11 @@ abstract class BaseInventory implements Inventory{
 	 * @param Item[] $items
 	 */
 	public function setContents(array $items){
-		if(count($items) > $this->size){
-			$items = array_slice($items, 0, $this->size, true);
+		if(count($items) > $this->getSize()){
+			$items = array_slice($items, 0, $this->getSize(), true);
 		}
 
-		for($i = 0; $i < $this->size; ++$i){
+		for($i = 0; $i < $this->getSize(); ++$i){
 			if(!isset($items[$i])){
 				if(isset($this->slots[$i])){
 					$this->clear($i);
@@ -134,7 +139,7 @@ abstract class BaseInventory implements Inventory{
 
 	public function setItem($index, Item $item){
 		$item = clone $item;
-		if($index < 0 or $index >= $this->size){
+		if($index < 0 or $index >= $this->getSize()){
 			return false;
 		}elseif($item->getId() === 0 or $item->getCount() <= 0){
 			return $this->clear($index);
@@ -212,7 +217,7 @@ abstract class BaseInventory implements Inventory{
 	}
 
 	public function firstEmpty(){
-		for($i = 0; $i < $this->size; ++$i){
+		for($i = 0; $i < $this->getSize(); ++$i){
 			if($this->getItem($i)->getId() === Item::AIR){
 				return $i;
 			}
